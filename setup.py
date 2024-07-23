@@ -20,6 +20,9 @@ setup(
     entry_points={
         "console_scripts": [
             "ros_bluerov2_interface = rosmav.ros_bluerov2_interface:main",
+            "test_node = rosmav.test_node:main",
+            "test_dance = rosmav.test_dance:main",
+            "ppap = rosmav.ppap:main",
         ],
     },
 )

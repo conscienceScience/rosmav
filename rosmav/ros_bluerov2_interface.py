@@ -90,7 +90,16 @@ class ROSBluerov2Interface(Node):
             msg.channels[4],
             msg.channels[5],
             msg.channels[6],
-            msg.channels[7],
+            msg.channels[8],
+            msg.channels[9],
+            msg.channels[10],
+            msg.channels[11],
+            msg.channels[12],
+            msg.channels[13],
+            msg.channels[14],
+            msg.channels[15],
+            msg.channels[16],
+            msg.channels[17],
         )
 
     def _set_neutral_all_channels(self):
