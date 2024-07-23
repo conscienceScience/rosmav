@@ -131,14 +131,14 @@ class DanceNode(Node):
 
         # Chorus
         for _ in range(4):
-            self.move_left()
+            self.move_left(5)
             self.wait(1)
-            self.move_right()
+            self.move_right(5)
             self.wait(1)
         for _ in range(4):
-            self.move_right()
+            self.move_right(5)
             self.wait(1)
-            self.move_left()
+            self.move_left(5)
             self.wait(1)
 
     def wait(self, seconds):
