@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import rclpy
 from rclpy.node import Node
@@ -7,158 +7,299 @@ from time import sleep
 
 
 class DanceNode(Node):
+    forward = False
+    back = False
+    left = False
+    right = False
+    up = False
+    down = False
+    turn_left = False
+    turn_right = False
+    lightson = False
+    lightsoff = True
+    flash_light = False
+    flip = False
+    cork_left = False
+    cork_weird_8 = False
+    turn_left_up = False
+    spin_up = False
+    spiral_up = False
+    small_figure_eight = False
+    bop_up_n_down = False
+    step_counter = 0
+
+
     def __init__(self):
         super().__init__("dancing_node")
 
-        self._step_counter = 0
         self.command_pub = self.create_publisher(
-            OverrideRCIn, "bluerov2/override_rc", 10
+            OverrideRCIn,
+            "bluerov2/override_rc",
+            10
         )
 
-        self.loop = self.create_timer(1.0, self._loop)
+        self.loop = self.create_timer(1, self._loop)
 
     def _set_neutral_all_channels(self):
         neutral = OverrideRCIn()
-        neutral.channels = [1500] * 8
+        neutral.channels = [1500] * 18
         self.command_pub.publish(neutral)
 
     def _loop(self):
-        # Assuming _step_counter is managed elsewhere, otherwise adjust logic accordingly
-        if self._step_counter > 60:
+        if self.step_counter > 50:
             self.destroy_node()
             return
         self._dance_moves()
 
+        # See https://www.ardusub.com/developers/rc-input-and-output.html#rc-input
+
+        commands = OverrideRCIn()
+        commands.channels = [OverrideRCIn.CHAN_NOCHANGE] * 18
+
+        if self.forward:    # forward
+            commands.channels[4] = 1700
+        elif self.back:     # back
+            commands.channels[4] = 1300
+
+
+        if self.left:       #left
+            commands.channels[5] = 1300
+        elif self.right:    #right
+            commands.channels[5] = 1700
+
+
+        if self.up:         # up
+            commands.channels[2] = 1700
+        elif self.down:     # down
+            commands.channels[2] = 1300
+
+
+
+        if self.turn_left:       # spin left
+            commands.channels[3] = 1300
+        elif self.turn_right:    # spin_right
+            commands.channels[3] = 1700
+
+
+
+        if self.lightson:        #lights on
+            commands.channels[8] = 1500
+            commands.channels[9] = 1500
+        elif self.lightsoff:     #lights off
+            commands.channels[8] = 1000
+            commands.channels[9] = 1000
+
+
+        if self.flash_light:
+            #flashlight will keep light on after flashing,
+            #use lightsoff to turn off lights
+            for _ in range (6):
+                commands.channels[8] = 1500
+                commands.channels[9] = 1500
+                sleep(1)
+                commands.channels[8] = 1000
+                commands.channels[9] = 1000
+                sleep(1)
+                commands.channels[8] = 1500
+                commands.channels[9] = 1500
+
+
+
+        if self.flip:
+            commands.channels[3] = 1100
+            commands.channels[5] = 1900
+
+        if self.cork_left:
+            commands.channels[3] = 1100
+            commands.channels[5] = 1900
+            commands.channels[3] = 1100
+        if self.cork_weird_8:
+            commands.channels[3] = 1100
+            commands.channels[5] = 1900
+            commands.channels[5] = 1100
+            commands.channels[8] = 1500
+            commands.channels[9] = 1500
+
+        if self.turn_left_up:
+            commands.channels[2] = 1900
+            commands.channels[3] = 1200
+            commands.channels[4] = 1900
+
+        if self.spiral_up:
+            commands.channels[3] = 1200
+            commands.channels[2] = 1900
+            commands.channels[4] = 1900
+
+        if self.small_figure_eight:
+            commands.channels[4] = 1600  # Forward
+            commands.channels[3] = 1600  # Spin right
+            commands.channels[5] = 1400  # Spin left
+            sleep(.5)
+            commands.channels[4] = 1600
+            commands.channels[3] = 1400
+            commands.channels[5] = 1200
+
+        if self.bop_up_n_down:
+            for _ in range (6):
+                commands.channels[2] = 1000
+                sleep(0.5)
+                commands.channels[2] = 1500
+                sleep(0.5)
+                commands.channels[2] = 1000
+                sleep(0.5)
+                commands.channels[2] = 1500
+                sleep(0.5)
+                commands.channels[2] = 1000
+                sleep(0.5)
+                commands.channels[2] = 1500
+
+        self.command_pub.publish(commands)
+
+
     def _dance_moves(self):
-        # Define your dance moves here based on your channel configurations
-        pass
+        self.step_counter += 1
 
-    def move_forward(self, time):
-        msg = OverrideRCIn()
-        for i in range(time):
-            msg.channels = [1500, 1500, 1500, 1500, 1900, 1500, 1500, 1500]
-        self.publish_and_log(msg, "Moving forward")
+        # Delay before starting the dance routine
+        if self.step_counter < 6:
+            sleep(0.1)
 
-    def move_left(self, time):
-        msg = OverrideRCIn()
-        for i in range(time):
-            msg.channels = [1500, 1500, 1500, 1500, 1500, 1900, 1500, 1500]
-        self.publish_and_log(msg, "Moving left")
+        # [0:06:25] - [0:08:25] - (down)
+        elif self.step_counter < 8:
+            self.down = True  # Set the down flag to true for 2 seconds
 
-    def move_right(self, time):
-        msg = OverrideRCIn()
-        for i in range(time):
-            msg.channels = [1500, 1500, 1500, 1500, 1500, 1100, 1500, 1500]
-        self.publish_and_log(msg, "Moving right")
 
-    def up(self, time):
-        msg = OverrideRCIn()
-        for i in range(time):
-            msg.channels = [1500, 1500, 1900, 1500, 1700, 1500, 1500, 1500]
-        self.publish_and_log(msg, "Rising")
+        # [0:08:25] - [0:09] - Turn left 360 degrees
+        elif self.step_counter < 9:
+            self.down = True
+            self.turn_left = True
 
-    def down(self, time):
-        msg = OverrideRCIn()
-        for i in range(time):
-            msg.channels = [1500, 1500, 1100, 1500, 1100, 1500, 1500, 1500]
-        self.publish_and_log(msg, "Dropping")
+        # P-P-A-P [0:09] - [0:11]
+        elif self.step_counter < 11:
+            self.flash_light = True  # Turn lights on
+            self.lightsoff = False
+            self.turn_left = False
+            self.down = False
 
-    def spin(self, degrees, time):
-        msg = OverrideRCIn()
-        for i in range(time):
-            msg.channels = [1500, 1500, 1500, 1900, 1500, 1500, 1500, 1500]  # Adjust for actual spin channels
-        self.publish_and_log(msg, f"Spinning {degrees} degrees")
-    
-    def lightson(self):
-        msg = OverrideRCIn()
-        msg.channels = [1500] * 18
-        msg.channels[8] = 2000
-        msg.channels[9] = 2000          
-        self.publish_and_log(msg, f"Lights On")
+        elif self.step_counter < 17:
+            self.small_figure_eight = True  # Perform small figure-eight maneuver for 6 seconds
+            self.flash_light = False
+            self.lightson = True
+            self.lightsoff = False
+        #Assume during this time, robot floated up
 
-    def lightsoff(self):
-        msg = OverrideRCIn()
-        msg.channels = [1500] * 18
-        msg.channels[8] = 1000
-        msg.channels[9] = 1000          
-        self.publish_and_log(msg, f"Lights Off")
 
-    def flip(self, degrees, time):
-        msg = OverrideRCIn()
-        # Apparently channels 5,3 so literlly turn left and right at same time one - and one +
-        for i in range(time):
-            msg.channels = [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500]  # Adjust for actual flip channels
-        self.publish_and_log(msg, f"Flipping {degrees} degrees")
+        # I have a pen, I have an apple [0:17]
+        elif self.step_counter < 19:
+            self.lightson = False
+            self.lightsoff = True
+            self.small_figure_eight = False
+            self.left = True
 
-    def publish_and_log(self, msg, action):
-        self.command_pub.publish(msg)
-        self.get_logger().info(f"{action} - {msg.channels}")
+        elif self.step_counter < 21:
+            self.left = False
+            self.right = True
 
-    def execute_song(self):
-        # Intro
-        self.move_forward(5)
-        self.wait(9)
-        self.lightson()
 
-        # Main
-        self.move_left(5)
-        self.wait(8)
-        self.move_right(5)
-        self.wait(4)
-        self.spin(180, 5)
-        self.wait(3)
-        self.move_left(5)
-        self.wait(3)
-        self.move_right(5)
-        self.wait(4)
-        self.spin(180, 5)
-        self.wait(3)
-        self.move_left(5)
-        self.wait(2)
-        self.move_right(5)
-        self.wait(2)
-        self.down(5)
-        self.wait(2)
-        self.move_right(5)
-        self.wait(2)
-        self.up(5)
-        self.wait(2)
-        self.move_left(5)
-        self.wait(2)
-        self.flip(360, 5)
-        self.wait(2)
-        self.lightsoff()
+        # Uh! Apple-pen! [0:21]
+        elif self.step_counter < 22:
+            self.right = False
+            self.lightson = True
+            self.lightsoff = False
 
-        # Chorus
-        for _ in range(4):
-            self.move_left(5)
-            self.wait(1)
-            self.move_right(5)
-            self.wait(1)
-        for _ in range(4):
-            self.move_right(5)
-            self.wait(1)
-            self.move_left(5)
-            self.wait(1)
+        elif self.step_counter <24:
+            self.turn_left = True
+            self.down = True
 
-    def wait(self, seconds):
-        self._set_neutral_all_channels()
-        sleep(seconds)
+        # I have a pen, I have pineapple, [0:25]
+        elif self.step_counter <26:
+            self.lightoff = True
+            self.lightson = False
+            self.turn_left = False
+            self.down = False
+            self.forward = True
+
+        elif self.step_counter <28:
+            self.forward = False
+            self.back = True
+
+        #Uh! pineapple pen [0.28]
+        elif self.step_counter <29:
+            self.back = False
+            self.lightson = True
+            self.lightsoff = False
+
+        elif self.step_counter <31:
+            self.turn_left = True
+            self.down = True
+
+        # Apple-pen, pineapple-pen [0:31]
+        elif self.step_counter< 33:
+            self.flip = True
+            self.down = False
+            self.turn_left = False
+
+        elif self.step_counter < 35:
+            self.cork_weird_8  = True
+            self.flip = False
+
+        # Uh! pen-pinapple-apple-pen [0:35 - 0:39]
+        elif self.step_counter <36:
+            self.flash_light = True  # Activate flashlights
+            self._set_neutral_all_channels()
+
+        elif self.step_counter <39:
+            self.zigzag = True  # Perform zigzag maneuver
+            self.down = True
+
+        elif self.step_counter <43:
+            self.spiral_up = True  # Spiral up
+            self.lightsoff = True
+            self.flash_light = False
+
+        # Pen-pineapple-apple-pen [0:43]
+        elif self.step_counter < 45:
+            self.bob_up_n_down = True  # Flip 360 degrees
+            self.down = True
+            self.spiral_up = False
+
+        elif self.step_counter <49:
+            self.turn_left = True
+
+        elif self.step_counter >50:
+            self._set_neutral_all_channels()
+
+
+
+
+
+
+
+
+          #DONE!
+
+
+
+
+
+
+
+
+    def destroy_node(self):
+        return super().destroy_node()
 
 
 def main(args=None):
     rclpy.init(args=args)
-    dance_node = DanceNode()
+    danceNode = DanceNode()
 
     try:
-        dance_node.execute_song()
+        rclpy.spin(danceNode)
     except KeyboardInterrupt:
         pass
     finally:
-        # Cleanup
-        dance_node.destroy_node()
+        danceNode.destroy_node()
         rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
