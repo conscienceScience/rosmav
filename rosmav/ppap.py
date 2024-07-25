@@ -170,7 +170,7 @@ class DanceNode(Node):
 
         # [0:08:25] - [0:09] - Turn left 360 degrees
         elif self.step_counter < 9:
-            self.down = True
+            self.down = False
             self.turn_left = True
 
         # P-P-A-P [0:09] - [0:11]
@@ -183,13 +183,14 @@ class DanceNode(Node):
         elif self.step_counter < 17:
             self.small_figure_eight = True  # Perform small figure-eight maneuver for 6 seconds
             self.flash_light = False
+            self.up = True
             self.lightson = True
             self.lightsoff = False
-        #Assume during this time, robot floated up
 
 
         # I have a pen, I have an apple [0:17]
         elif self.step_counter < 19:
+            self.up = False
             self.lightson = False
             self.lightsoff = True
             self.small_figure_eight = False
