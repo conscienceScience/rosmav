@@ -30,6 +30,7 @@ setup(
             "test_node = rosmav.test_node:main",
             "test_dance = rosmav.test_dance:main",
             "ppap = rosmav.ppap:main",
+            "tag_following = rosmav.tag_following:main"
         ],
     },
 )

@@ -4,15 +4,76 @@
 import cv2
 import matplotlib.pyplot as plt
 from dt_apriltags import Detector
+import math
 
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Imu
+from sensor_msgs.msg import Imu, Image
 from std_msgs.msg import Int16
 from mavros_msgs.msg import ManualControl
+from cv_bridge import CvBridge
 
 
 
+class TagFollowingNode(Node):
+    def __init__(self):
+        super().__init__("tag_following_node")
+
+        self.tag_sub = self.create_subscription(
+
+            Image, 
+            "bluerov2/camera",
+            self.tag_callback,
+            10
+        )
+
+        self.lane_sub = self.create_subscription(
+            Image,
+            "bluerov2/camera",
+            self.lane_callback,
+            10
+        )
+
+        self.control_pub = self.create_publisher(
+            ManualControl,
+            "bluerov2/manual_control",
+            10
+        )
+
+
+
+    def tag_callback(self, msg):
+        """
+        This callback method takes an image and detects for april tags
+        if there are april tags, the method will choose one of them and calculate its distance (m) from the rov
+        using this information, we publish information to control the rov to move towards the tag
+        """
+        img:Image = msg
+        tags = detect_tags(img)
+        if tags is not None:
+            position = get_tag_pos(tags[0])
+            angle = (math.atan(position[0]/position[1]))*(180/math.pi)
+            #angle in degrees
+            distance = math.sqrt(position[0]**2+position[1]**2+position[2]**2)
+            self.get_logger().info(f"Distance from April Tag: {distance}")
+            self.get_logger().info(f"Desired heading: {angle}")
+
+            power_heading = math.sin(angle)
+            power_foward = math.sin(distance)
+
+            manual_control_msg = ManualControl()
+            manual_control_msg.header = power_heading
+            manual_control_msg.y = power_foward
+
+            self.control_pub.publish(manual_control_msg)
+
+        else:
+            self.get_logger().info("No tags detected.")
+        
+        
+        
+
+    
 
 
 
@@ -64,11 +125,3 @@ def get_tag_pos(tag):
     """
     return (tag.pose_t)
 
-
-
-
-
-tags = detect_tags('tag3.png')
-tag = tags[1]
-pos = get_tag_pos(tag)
-print(pos)
