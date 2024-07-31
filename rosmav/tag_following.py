@@ -27,13 +27,6 @@ class TagFollowingNode(Node):
             10
         )
 
-        self.lane_sub = self.create_subscription(
-            Image,
-            "bluerov2/camera",
-            self.lane_callback,
-            10
-        )
-
         self.control_pub = self.create_publisher(
             ManualControl,
             "bluerov2/manual_control",
