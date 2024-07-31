@@ -1,0 +1,27 @@
+launch:
+
+- node:
+    pkg: "rosmav"
+    exec: "ros_bluerov2_interface"
+    name: "bluerov2_interface"
+    namespace: ""
+
+- node:
+    pkg: "rosmav"
+    exec: "bluerov2_camera_interface"
+    name: "bluerov2_camera_interface"
+    namespace: ""
+
+- node:
+    pkg: "rosmav"
+    exec: "test_node"
+    name: "test_node"
+    namespace: ""
+
+- node: 
+    pkg: "rosmav"
+    exec: "tag_following"
+    name: "tag_follwoing"
+    namespace: ""
+
+    
