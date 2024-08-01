@@ -38,13 +38,14 @@ class LaneFollowingNode(Node):
         """
 
         img: Image = msg
+        img = cv2.imread(img)
         lines = detect_lines(img)
         if lines is not None:
             #find index of steepest/closest line
             slopes, intercepts = get_slopes_intercepts(lines)
             max_slope = slopes[0]
             index = i
-            for i in slopes:
+            for i in range(slopes.len()):
                 if(math.abs(slopes[i]>math.abs(max_slope))):
                     max_slope = slopes[i]
                     index = i
@@ -71,6 +72,8 @@ class LaneFollowingNode(Node):
                 msg.y = 20
                 self.control_pub.publish(msg)
 
+            self.get_logger().info(draw_lines(img))
+
 
 
         else:
@@ -78,6 +81,7 @@ class LaneFollowingNode(Node):
             msg = ManualControl()
             msg.header = 90
             self.control_pub.publish(msg)
+            self.get_logger().info("No lanes detected.")
             
 
 
